@@ -1,0 +1,23 @@
+{
+  "name": "auth_http_api",
+  "version": "1.0",
+  "description": {
+    "en": "Auth HTTP API",
+    "ru": "Auth HTTP API",
+    "uk": "Auth HTTP API"
+  },
+  "url": "https://github.com/pytsite/plugin-auth_http_api",
+  "author": {
+    "name": "Alexander Shepetko",
+    "email": "a@shepetko.com",
+    "url": "https://shepetko.com"
+  },
+  "requires": {
+    "packages": [],
+    "plugins": [
+      "auth",
+      "assetman",
+      "http_api"
+    ]
+  }
+}
