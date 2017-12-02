@@ -149,7 +149,6 @@ curl -X DELETE https://test.com/api/1/auth/access-token/e51081bc4632d8c2a31ac5bd
 Поля, возвращаемые в случае, если `profile_is_public` возвращаемой учётной записи равен `true`, запрашивающая учётная 
 запись является администратором или владельцем запрашиваемой учётной записи:
 
-- **str** `profile_url`. URL профиля учётной записи.
 - **str** `nickname`. Никнейм.
 - **object** `picture`. Юзерпик.
     - **str** `url`. URL.
@@ -204,7 +203,6 @@ https://test.com/api/1/auth/user/576563ef523af52badc5beac
 ```
 {
   "uid": "576563ef523af52badc5beac",
-  "profile_url": "https://test.com/auth/profile/pupkeen",
   "nickname": "pupkeen",
   "picture": {
     "url": "https://test.com/image/resize/0/0/59/e0/0b544b26210ca43f.png",

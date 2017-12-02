@@ -147,7 +147,6 @@ class TestHttpApi(testing.TestCase):
 
                 # Requester is authenticated user, but not a current user, profile is public
                 if requester_login != user.login and user.profile_is_public:
-                    self.assertHttpRespJsonFieldIsUrl(resp, 'profile_url')
                     self.assertHttpRespJsonFieldEquals(resp, 'nickname', 'nickname-{}'.format(i))
                     self.assertHttpRespJsonFieldIsDict(resp, 'picture')
                     self.assertHttpRespJsonFieldEquals(resp, 'first_name', 'first_name_{}'.format(i))

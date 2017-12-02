@@ -181,7 +181,6 @@ https://test.com/api/2/auth/is_anonymous
 учётной записи равен `true`, запрашивающая учётная запись запись
 является  администратором или владельцем запрашиваемой учётной записи:
 
-- **str** `profile_url`. URL профиля учётной записи.
 - **str** `nickname`. Никнейм.
 - **object** `picture`. Юзерпик.
     - **str** `url`. URL.
@@ -239,7 +238,6 @@ https://test.com/api/2/auth/user/576563ef523af52badc5beac
 ```
 {
   "uid": "576563ef523af52badc5beac",
-  "profile_url": "https://test.com/auth/profile/pupkeen",
   "nickname": "pupkeen",
   "picture": {
     "url": "https://test.com/image/resize/0/0/59/e0/0b544b26210ca43f.png",
