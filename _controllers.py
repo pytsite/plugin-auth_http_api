@@ -47,7 +47,7 @@ class PostAccessToken(_routing.Controller):
 
             return _get_access_token_info(_auth.generate_access_token(user))
 
-        except (_auth.error.AuthenticationError, _auth.error.UserNotExist) as e:
+        except (_auth.error.AuthenticationError, _auth.error.UserNotFound) as e:
             _logger.warn(e)
             raise self.forbidden()
 
@@ -75,7 +75,7 @@ class DeleteAccessToken(_routing.Controller):
 
             return {'status': True}
 
-        except (_auth.error.UserNotExist, _auth.error.InvalidAccessToken) as e:
+        except (_auth.error.UserNotFound, _auth.error.InvalidAccessToken) as e:
             raise self.forbidden(str(e))
 
 
@@ -102,7 +102,7 @@ class GetUser(_routing.Controller):
 
             return jsonable
 
-        except _auth.error.UserNotExist:
+        except _auth.error.UserNotFound:
             raise self.not_found()
 
 
@@ -183,7 +183,7 @@ class PostFollow(_routing.Controller):
         # Load user to follow
         try:
             user = _auth.get_user(uid=self.arg('uid'))
-        except _auth.error.UserNotExist:
+        except _auth.error.UserNotFound:
             raise self.not_found()
 
         _auth.switch_user_to_system()
@@ -211,7 +211,7 @@ class DeleteFollow(_routing.Controller):
         # Load user to unfollow
         try:
             user = _auth.get_user(uid=self.arg('uid'))
-        except _auth.error.UserNotExist:
+        except _auth.error.UserNotFound:
             raise self.not_found()
 
         _auth.switch_user_to_system()
@@ -244,7 +244,7 @@ class GetFollowsOrFollowers(_routing.Controller):
 
         try:
             user = _auth.get_user(uid=self.arg('uid'))
-        except _auth.error.UserNotExist:
+        except _auth.error.UserNotFound:
             raise self.not_found()
 
         if user != current_user and not (current_user.is_admin or user.profile_is_public):
@@ -281,7 +281,7 @@ class GetBlockedUsers(_routing.Controller):
 
         try:
             user = _auth.get_user(uid=self.arg('uid'))
-        except _auth.error.UserNotExist:
+        except _auth.error.UserNotFound:
             raise self.not_found()
 
         current_user = _auth.get_current_user()
@@ -310,7 +310,7 @@ class PostBlockUser(_routing.Controller):
         # Load user to block
         try:
             user = _auth.get_user(uid=self.arg('uid'))
-        except _auth.error.UserNotExist:
+        except _auth.error.UserNotFound:
             raise self.not_found()
 
         _auth.switch_user_to_system()
@@ -338,7 +338,7 @@ class DeleteBlockUser(_routing.Controller):
         # Load user to unblock
         try:
             user = _auth.get_user(uid=self.arg('uid'))
-        except _auth.error.UserNotExist:
+        except _auth.error.UserNotFound:
             raise self.not_found()
 
         _auth.switch_user_to_system()
