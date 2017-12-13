@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 1.3.2 (2017-12-13)
+
+Init fixed.
+
+
 ### 1.3.1 (2017-12-13)
 
 Events names fixed.

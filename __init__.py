@@ -6,8 +6,16 @@ __email__ = 'a@shepetko.com'
 __license__ = 'MIT'
 
 
+def plugin_load():
+    from plugins import assetman
+
+    assetman.register_package(__name__)
+    assetman.t_js(__name__)
+    assetman.js_module('auth-http-api', __name__ + '@js/auth-http-api')
+
+
 def plugin_load_uwsgi():
-    from plugins import http_api, assetman
+    from plugins import http_api
     from . import _controllers, _eh
 
     # Access token HTTP API
@@ -33,7 +41,3 @@ def plugin_load_uwsgi():
     http_api.handle('GET', 'auth/blocked_users/<uid>', _controllers.GetBlockedUsers, 'auth@get_blocked_users')
 
     http_api.on_pre_request(_eh.http_api_pre_request)
-
-    assetman.register_package(__name__)
-    assetman.t_js(__name__)
-    assetman.js_module('auth-http-api', __name__ + '@js/auth-http-api')
