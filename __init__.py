@@ -6,7 +6,7 @@ __email__ = 'a@shepetko.com'
 __license__ = 'MIT'
 
 
-def _init():
+def plugin_load_uwsgi():
     from plugins import http_api, assetman
     from . import _controllers, _eh
 
@@ -35,8 +35,5 @@ def _init():
     http_api.on_pre_request(_eh.http_api_pre_request)
 
     assetman.register_package(__name__)
-    assetman.t_js(__name__ + '@**')
+    assetman.t_js(__name__)
     assetman.js_module('auth-http-api', __name__ + '@js/auth-http-api')
-
-
-_init()
