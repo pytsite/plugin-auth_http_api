@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 1.3.1 (2017-12-13)
+
+Events names fixed.
+
+
 ### 1.3 (2017-12-02)
 
 Support for PytSite-7.0.
