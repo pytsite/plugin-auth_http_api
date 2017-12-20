@@ -41,3 +41,10 @@ def plugin_load_uwsgi():
     http_api.handle('GET', 'auth/blocked_users/<uid>', _controllers.GetBlockedUsers, 'auth@get_blocked_users')
 
     http_api.on_pre_request(_eh.http_api_pre_request)
+
+
+def plugin_install():
+    from plugins import assetman
+
+    plugin_load()
+    assetman.build(__name__)
