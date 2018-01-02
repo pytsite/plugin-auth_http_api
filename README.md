@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 1.4 (2018-01-02)
+
+Events names refactoring.
+
+
 ### 1.3.4 (2017-12-21)
 
 Init code refactored.

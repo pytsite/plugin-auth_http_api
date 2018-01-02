@@ -98,7 +98,7 @@ class GetUser(_routing.Controller):
         try:
             user = _auth.get_user(uid=self.arg('uid'))
             jsonable = _get_user_jsonable(user, _auth.get_current_user(), self.arg('_pytsite_http_api_version'))
-            _events.fire('auth@http_api.get_user', user=user, json=jsonable)
+            _events.fire('auth_http_api@get_user', user=user, json=jsonable)
 
             return jsonable
 
@@ -123,7 +123,7 @@ class GetUsers(_routing.Controller):
             try:
                 user = _auth.get_user(uid=uid)
                 json = _get_user_jsonable(user, current_user, self.arg('_pytsite_http_api_version'))
-                _events.fire('auth@http_api.get_user', user=user, json=json)
+                _events.fire('auth_http_api@get_user', user=user, json=json)
                 r.append(json)
 
             except Exception as e:
@@ -165,7 +165,7 @@ class PatchUser(_routing.Controller):
 
         json = _get_user_jsonable(user, user, self.arg('_pytsite_http_api_version'))
 
-        _events.fire('auth@http_api.get_user', user=user, json=json)
+        _events.fire('auth_http_api@get_user', user=user, json=json)
 
         return json
 
@@ -189,8 +189,6 @@ class PostFollow(_routing.Controller):
         _auth.switch_user_to_system()
         current_user.add_follows(user).save()
         _auth.restore_user()
-
-        _events.fire('auth@follow', user=user, follower=current_user)
 
         if self.arg('_pytsite_http_api_version') == 1:
             return {'follows': [u.uid for u in current_user.follows]}
@@ -217,8 +215,6 @@ class DeleteFollow(_routing.Controller):
         _auth.switch_user_to_system()
         current_user.remove_follows(user).save()
         _auth.restore_user()
-
-        _events.fire('auth@unfollow', user=user, follower=current_user)
 
         if self.arg('_pytsite_http_api_version') == 1:
             return {'follows': [u.uid for u in current_user.follows]}
@@ -317,8 +313,6 @@ class PostBlockUser(_routing.Controller):
         current_user.add_blocked_user(user).save()
         _auth.restore_user()
 
-        _events.fire('auth@block_user', user=user, blocker=current_user)
-
         if self.arg('_pytsite_http_api_version') == 1:
             return {'blocked_users': [u.uid for u in current_user.blocked_users]}
         else:
@@ -344,8 +338,6 @@ class DeleteBlockUser(_routing.Controller):
         _auth.switch_user_to_system()
         current_user.remove_blocked_user(user).save()
         _auth.restore_user()
-
-        _events.fire('auth@unblock_user', user=user, blocker=current_user)
 
         if self.arg('_pytsite_http_api_version') == 1:
             return {'blocked_users': [u.uid for u in current_user.blocked_users]}
