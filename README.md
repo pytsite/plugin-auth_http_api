@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 1.5 (2018-01-08)
+
+HTTP API version 3.
+
+
 ### 1.4 (2018-01-02)
 
 Events names refactoring.

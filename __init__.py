@@ -33,6 +33,8 @@ def plugin_load_uwsgi():
     http_api.handle('POST', 'auth/access-token/<driver>', _controllers.PostAccessToken, 'auth@post_access_token')
     http_api.handle('GET', 'auth/access-token/<token>', _controllers.GetAccessToken, 'auth@get_access_token')
     http_api.handle('DELETE', 'auth/access-token/<token>', _controllers.DeleteAccessToken, 'auth@delete_access_token')
+    http_api.handle('POST', 'auth/sign-in/<driver>', 'auth@post_access_token', 'auth@post_sign_in')
+    http_api.handle('POST', 'auth/sign-out/<token>', 'auth@delete_access_token', 'auth@post_sign_out')
 
     # User HTTP API
     http_api.handle('GET', 'auth/is_anonymous', _controllers.IsAnonymous, 'auth@is_anonymous')

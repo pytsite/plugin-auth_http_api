@@ -1,4 +1,4 @@
-# PytSite Authentication HTTP API version 3
+# PytSite Authentication HTTP API version 2
 
 
 ## POST auth/access-token/:driver
@@ -36,7 +36,7 @@
 curl -X POST \
 -d login='vasya@pupkeen.com' \
 -d password='Very5tr0ngP@ssw0rd' \
-https://test.com/api/3/auth/access-token/password
+https://test.com/api/2/auth/access-token/password
 ```
 
 
@@ -51,11 +51,6 @@ https://test.com/api/3/auth/access-token/password
     "expires": "2017-01-26T14:04:35+0200"
 }
 ```
-
-
-## POST auth/sign-in/:driver
-
-Псевдоним для **POST auth/access-token/:driver**.
 
 
 ## GET auth/access-token/:token
@@ -84,7 +79,7 @@ https://test.com/api/3/auth/access-token/password
 Запрос:
 
 ```
-curl -X GET https://test.com/api/3/auth/access-token/e51081bc4632d8c2a31ac5bd8080af1b
+curl -X GET https://test.com/api/2/auth/access-token/e51081bc4632d8c2a31ac5bd8080af1b
 ```
 
 Ответ:
@@ -120,7 +115,7 @@ curl -X GET https://test.com/api/3/auth/access-token/e51081bc4632d8c2a31ac5bd808
 Запрос:
 
 ```
-curl -X DELETE https://test.com/api/3/auth/access-token/e51081bc4632d8c2a31ac5bd8080af1b
+curl -X DELETE https://test.com/api/2/auth/access-token/e51081bc4632d8c2a31ac5bd8080af1b
 ```
 
 
@@ -133,12 +128,7 @@ curl -X DELETE https://test.com/api/3/auth/access-token/e51081bc4632d8c2a31ac5bd
 ```
 
 
-## POST auth/sign-out/:token
-
-Псевдоним для **DELETE auth/access-token/:token**
-
-
-## GET auth/is_anonymous
+## GET /auth/is_anonymous
 
 Проверка, является ли текущая учётная запись авторизованной.
 
@@ -157,7 +147,7 @@ curl -X DELETE https://test.com/api/3/auth/access-token/e51081bc4632d8c2a31ac5bd
 ```
 curl -X GET \
 -H 'PytSite-Auth: e51081bc4632d8c2a31ac5bd8080af1b' \
-https://test.com/api/3/auth/is_anonymous
+https://test.com/api/2/auth/is_anonymous
 ```
 
 Ответ:
@@ -239,7 +229,7 @@ https://test.com/api/3/auth/is_anonymous
 ```
 curl -X GET \
 -H 'PytSite-Auth: e51081bc4632d8c2a31ac5bd8080af1b' \  
-https://test.com/api/3/auth/user/576563ef523af52badc5beac
+https://test.com/api/2/auth/user/576563ef523af52badc5beac
 ```
 
 
@@ -301,7 +291,7 @@ https://test.com/api/3/auth/user/576563ef523af52badc5beac
 ```
 curl -X GET \
 -d uids='["590ed572523af516d789a063", "590ed5f3523af516d789a0cd"]' \
-https://test.com/api/3/auth/users
+https://test.com/api/2/auth/users
 ```
 
 
@@ -367,7 +357,7 @@ curl -X PATCH \
 -d gender=f \
 -d profile_is_public=false \
 -d description='I am an invisible girl' \
-https://test.com/api/3/auth/user/576563ef523af52badc5beac
+https://test.com/api/2/auth/user/576563ef523af52badc5beac
 ```
 
 
@@ -406,7 +396,7 @@ curl -X PATCH \
 -H 'PytSite-Auth: e51081bc4632d8c2a31ac5bd8080af1b' \
 -d skip=100 \
 -d count=50 \
-https://test.com/api/3/auth/follows/576563ef523af52badc5beac
+https://test.com/api/2/auth/follows/576563ef523af52badc5beac
 ```
 
 
@@ -461,7 +451,7 @@ curl -X PATCH \
 -H 'PytSite-Auth: e51081bc4632d8c2a31ac5bd8080af1b' \
 -d skip=7 \
 -d count=14 \
-https://test.com/api/3/auth/followers/589ec1ba523af557a2099b5f
+https://test.com/api/2/auth/followers/589ec1ba523af557a2099b5f
 ```
 
 
@@ -507,7 +497,7 @@ https://test.com/api/3/auth/followers/589ec1ba523af557a2099b5f
 ```
 curl -X POST \
 -H 'PytSite-Auth: e51081bc4632d8c2a31ac5bd8080af1b' \
-https://test.com/api/3/auth/follow/576563ef523af52badc5beac
+https://test.com/api/2/auth/follow/576563ef523af52badc5beac
 ```
 
 Ответ:
@@ -544,7 +534,7 @@ https://test.com/api/3/auth/follow/576563ef523af52badc5beac
 ```
 curl -X DELETE \ 
 -H 'PytSite-Auth: e51081bc4632d8c2a31ac5bd8080af1b' \
-https://test.com/api/3/auth/follow/576563ef523af52badc5beac
+https://test.com/api/2/auth/follow/576563ef523af52badc5beac
 ```
 
 Ответ:
@@ -590,7 +580,7 @@ curl -X PATCH \
 -H 'PytSite-Auth: e51081bc4632d8c2a31ac5bd8080af1b' \
 -d skip=7 \
 -d count=14 \
-https://test.com/api/3/auth/blocked_users/589ec1ba523af557a2099b5f
+https://test.com/api/2/auth/blocked_users/589ec1ba523af557a2099b5f
 ```
 
 
@@ -635,7 +625,7 @@ https://test.com/api/3/auth/blocked_users/589ec1ba523af557a2099b5f
 ```
 curl -X POST \
 -H 'PytSite-Auth: e51081bc4632d8c2a31ac5bd8080af1b' \
-https://test.com/api/3/auth/block_user/576563ef523af52badc5beac
+https://test.com/api/2/auth/block_user/576563ef523af52badc5beac
 ```
 
 Ответ:
@@ -670,7 +660,7 @@ https://test.com/api/3/auth/block_user/576563ef523af52badc5beac
 ```
 curl -X DELETE \
 -H 'PytSite-Auth: e51081bc4632d8c2a31ac5bd8080af1b' \
-https://test.com/api/3/auth/block_user/576563ef523af52badc5beac
+https://test.com/api/2/auth/block_user/576563ef523af52badc5beac
 ```
 
 Ответ:

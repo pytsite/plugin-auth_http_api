@@ -1,15 +1,15 @@
 """PytSite Auth HTTP API Tests
 """
+__author__ = 'Alexander Shepetko'
+__email__ = 'a@shepetko.com'
+__license__ = 'MIT'
+
 import json
 from typing import List
 from datetime import datetime
 from random import randint as _randint
-from pytsite import testing, http_api, util
-from plugins import auth
-
-__author__ = 'Alexander Shepetko'
-__email__ = 'a@shepetko.com'
-__license__ = 'MIT'
+from pytsite import testing, util
+from plugins import auth, http_api
 
 
 class TestHttpApi(testing.TestCase):
@@ -74,11 +74,19 @@ class TestHttpApi(testing.TestCase):
         """
         pass
 
+    def test_post_sign_in(self):
+        """
+        POST auth/sign-in/:driver
+
+        There is no code because it should be implemented by authentication drivers
+        """
+        pass
+
     def test_get_access_token(self):
         """
         GET auth/access-token/:token
         """
-        for version in (1, 2):
+        for version in (1, 2, 3):
             for user in self.users:
                 token = auth.generate_access_token(user)
                 url = http_api.url('auth@get_access_token', {'token': token}, version)
@@ -95,7 +103,7 @@ class TestHttpApi(testing.TestCase):
         """
         DELETE auth/access-token/:token
         """
-        for version in (1, 2):
+        for version in (1, 2, 3):
             for user in self.users:
                 token = auth.generate_access_token(user)
                 url = http_api.url('auth@delete_access_token', {'token': token}, version)
@@ -106,11 +114,26 @@ class TestHttpApi(testing.TestCase):
                 with self.assertRaises(auth.error.InvalidAccessToken):
                     auth.get_access_token_info(token)
 
+    def test_post_sign_out(self):
+        """
+        DELETE auth/sign-out/:token
+        """
+        for version in (3,):
+            for user in self.users:
+                token = auth.generate_access_token(user)
+                url = http_api.url('auth@post_sign_out', {'token': token}, version)
+                resp = self.send_http_request(self.prepare_http_request('POST', url))
+                self.assertHttpRespCodeEquals(resp, 200)
+                self.assertHttpRespJsonFieldIsTrue(resp, 'status')
+
+                with self.assertRaises(auth.error.InvalidAccessToken):
+                    auth.get_access_token_info(token)
+
     def test_is_anonymous(self):
         """
         GET auth/is_anonymous
         """
-        for version in (1, 2):
+        for version in (1, 2, 3):
             # Anonymous request
             req = self.prepare_http_request('GET', http_api.url('auth@is_anonymous', version=version))
             res = self.send_http_request(req)
@@ -138,7 +161,7 @@ class TestHttpApi(testing.TestCase):
         user = self.users[i]
         b_date = util.w3c_datetime_str(datetime(1984, 7, i + 1, i, i, i))
 
-        for version in (1, 2):
+        for version in (1, 2, 3):
             for requester_login in (None, 'test_user_1@test.com', user.login):
                 resp = self._get_user_via_http('test_user_{}@test.com'.format(i), version, requester_login)
 
@@ -190,7 +213,7 @@ class TestHttpApi(testing.TestCase):
         GET auth/users
         """
         users_uids = [u.uid for u in self.users]
-        for version in (1, 2):
+        for version in (1, 2, 3):
             url = http_api.url('auth@get_users', {'uids': users_uids}, version)
             resp = self.send_http_request(self.prepare_http_request('GET', url))
             self.assertHttpRespCodeEquals(resp, 200)
@@ -236,7 +259,7 @@ class TestHttpApi(testing.TestCase):
         user2 = self.users[1]  # type: auth.model.AbstractUser
         user1_token = auth.generate_access_token(user1)
 
-        for version in (1, 2):
+        for version in (1, 2, 3):
             self.assertEqual(user1.follows, [])
             self.assertEqual(user2.followers, [])
             self.assertEqual(user1.follows_count, 0)
@@ -367,7 +390,7 @@ class TestHttpApi(testing.TestCase):
         user2 = self.users[1]  # type: auth.model.AbstractUser
         user1_token = auth.generate_access_token(user1)
 
-        for version in (1, 2):
+        for version in (1, 2, 3):
             # Block
             self.assertEqual(user1.blocked_users, [])
             self.assertEqual(user1.blocked_users_count, 0)
