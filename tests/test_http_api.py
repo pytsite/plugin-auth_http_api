@@ -135,7 +135,7 @@ class TestHttpApi(testing.TestCase):
         """
         for version in (1, 2, 3):
             # Anonymous request
-            req = self.prepare_http_request('GET', http_api.url('auth@is_anonymous', version=version))
+            req = self.prepare_http_request('GET', http_api.url('auth@get_is_anonymous', version=version))
             res = self.send_http_request(req)
             self.assertHttpRespCodeEquals(res, 200)
             if version == 1:
@@ -146,7 +146,7 @@ class TestHttpApi(testing.TestCase):
             # Authenticated requests
             for user in self.users:
                 token = auth.generate_access_token(user)
-                url = http_api.url('auth@is_anonymous', version=version)
+                url = http_api.url('auth@get_is_anonymous', version=version)
                 res = self.send_http_request(self.prepare_http_request('GET', url, {'PytSite-Auth': token}))
                 if version == 1:
                     self.assertHttpRespContentStrEquals(res, 'false')

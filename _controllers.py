@@ -76,10 +76,10 @@ class DeleteAccessToken(_routing.Controller):
             return {'status': True}
 
         except (_auth.error.UserNotFound, _auth.error.InvalidAccessToken) as e:
-            raise self.forbidden(str(e))
+            raise self.forbidden(e)
 
 
-class IsAnonymous(_routing.Controller):
+class GetIsAnonymous(_routing.Controller):
     """Check if the current user is anonymous
     """
 
@@ -168,6 +168,21 @@ class PatchUser(_routing.Controller):
         _events.fire('auth_http_api@get_user', user=user, json=json)
 
         return json
+
+
+class PostSignUp(_routing.Controller):
+    """Issue a new access token
+    """
+
+    def exec(self) -> dict:
+        try:
+            # Try to sign in user via driver
+            user = _auth.sign_up(self.arg('driver'), dict(self.args))
+
+            return _get_access_token_info(_auth.generate_access_token(user))
+
+        except _auth.error.SignupDisabled as e:
+            raise self.forbidden(e)
 
 
 class PostFollow(_routing.Controller):

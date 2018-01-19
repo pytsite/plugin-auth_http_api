@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 1.6 (2018-01-19)
+
+Added **POST auth/sign-up** endpoint.
+
+
 ### 1.5 (2018-01-08)
 
 HTTP API version 3.

@@ -37,10 +37,13 @@ def plugin_load_uwsgi():
     http_api.handle('POST', 'auth/sign-out/<token>', 'auth@delete_access_token', 'auth@post_sign_out')
 
     # User HTTP API
-    http_api.handle('GET', 'auth/is_anonymous', _controllers.IsAnonymous, 'auth@is_anonymous')
+    http_api.handle('GET', 'auth/is_anonymous', _controllers.GetIsAnonymous, 'auth@get_is_anonymous')
     http_api.handle('GET', 'auth/user/<uid>', _controllers.GetUser, 'auth@get_user')
     http_api.handle('GET', 'auth/users', _controllers.GetUsers, 'auth@get_users')
     http_api.handle('PATCH', 'auth/user/<uid>', _controllers.PatchUser, 'auth@patch_user')
+
+    # Sign Up HTTP API
+    http_api.handle('POST', 'auth/sign-up/<driver>', _controllers.PostSignUp, 'auth@post_sign_up')
 
     # Following HTTP API
     http_api.handle('GET', 'auth/follows/<uid>', _controllers.GetFollowsOrFollowers, 'auth@get_follows')
