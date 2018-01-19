@@ -15,7 +15,7 @@
   "requires": {
     "packages": [],
     "plugins": [
-      "auth",
+      "auth>=1.7",
       "assetman",
       "http_api"
     ]
