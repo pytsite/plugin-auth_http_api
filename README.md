@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 1.6.2 (2018-01-29)
+
+`plugin.json` fixed.
+
+
 ### 1.6.1 (2018-01-19)
 
 Dependency spec fixed.
