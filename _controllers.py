@@ -245,7 +245,7 @@ class GetFollowsOrFollowers(_routing.Controller):
         super().__init__()
 
         self.args.add_formatter('skip', _formatters.PositiveInt())
-        self.args.add_formatter('count', _formatters.Int(minimum=1, maximum=100))
+        self.args.add_formatter('count', _formatters.AboveZeroInt(maximum=100))
 
     def exec(self) -> dict:
         if self.arg('_pytsite_http_api_version') < 2:
@@ -284,7 +284,7 @@ class GetBlockedUsers(_routing.Controller):
         super().__init__()
 
         self.args.add_formatter('skip', _formatters.PositiveInt())
-        self.args.add_formatter('count', _formatters.Int(minimum=1, maximum=100))
+        self.args.add_formatter('count', _formatters.AboveZeroInt(maximum=100))
 
     def exec(self):
         if self.arg('_pytsite_http_api_version') < 2:
