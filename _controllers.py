@@ -26,11 +26,11 @@ def _get_user_jsonable(user: _auth.model.AbstractUser, current_user: _auth.model
 
     # HTTP API version 1
     if http_api_version == 1:
-        if user.profile_is_public or current_user == user or current_user.is_admin:
+        if user.profile_is_public or current_user == user or current_user.is_admin_or_dev:
             jsonable['follows'] = [f.uid for f in user.follows]
             jsonable['followers'] = [f.uid for f in user.followers]
 
-        if current_user == user or current_user.is_admin:
+        if current_user == user or current_user.is_admin_or_dev:
             jsonable['blocked_users'] = [u.uid for u in user.blocked_users]
 
     return jsonable
@@ -150,7 +150,7 @@ class PatchUser(_routing.Controller):
         user = _auth.get_current_user()
 
         # Check permissions
-        if user.is_anonymous or (user.uid != self.arg('uid') and not user.is_admin):
+        if user.is_anonymous or (user.uid != self.arg('uid') and not user.is_admin_or_dev):
             raise self.forbidden()
 
         allowed_fields = ('email', 'nickname', 'picture', 'first_name', 'last_name', 'description', 'birth_date',
@@ -258,7 +258,7 @@ class GetFollowsOrFollowers(_routing.Controller):
         except _auth.error.UserNotFound:
             raise self.not_found()
 
-        if user != current_user and not (current_user.is_admin or user.profile_is_public):
+        if user != current_user and not (current_user.is_admin_or_dev or user.profile_is_public):
             raise self.forbidden()
 
         skip = self.arg('skip', 0)
@@ -297,7 +297,7 @@ class GetBlockedUsers(_routing.Controller):
 
         current_user = _auth.get_current_user()
 
-        if current_user.is_anonymous or not (current_user == user or current_user.is_admin):
+        if current_user.is_anonymous or not (current_user == user or current_user.is_admin_or_dev):
             raise self.forbidden()
 
         skip = self.arg('skip', 0)

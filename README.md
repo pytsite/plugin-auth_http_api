@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 1.7.1 (2018-04-06)
+
+Minor issues fixed.
+
+
 ### 1.7 (2018-03-15)
 
 Support for PytSite-7.13.
