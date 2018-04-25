@@ -215,7 +215,7 @@ https://test.com/api/3/auth/is_anonymous
 
 - **str** `uid`. Идентификатор учётной записи.
 
-Поля, возвращаемые в случае, если `profile_is_public` возвращаемой
+Поля, возвращаемые в случае, если `public` возвращаемой
 учётной записи равен `true`, запрашивающая учётная запись запись
 является  администратором или владельцем запрашиваемой учётной записи:
 
@@ -255,7 +255,7 @@ https://test.com/api/3/auth/is_anonymous
 - **int** `sign_in_count`. Общее количество успешных аутентификаций.
 - **str** `status`. Статус учётной записи: 'active', 'waiting' или
   'disabled'.
-- **bool** `profile_is_public`. Видимость профиля.
+- **bool** `is_public`. Видимость профиля.
 
 Также возможно добавление дополнительных полей сторонними модулями.
 
@@ -300,7 +300,7 @@ https://test.com/api/3/auth/user/576563ef523af52badc5beac
   "last_activity": "2016-09-12T11:19:18+0300",
   "sign_in_count": 14,
   "status": "active",
-  "profile_is_public": true
+  "is_public": true
 }
 ```
 
@@ -368,7 +368,7 @@ https://test.com/api/3/auth/users
 - **str** `country`. Страна.
 - **str** `city`. Город.
 - **array\[str\]** `urls`. URL профилей учётной записи в других местах.
-- **bool** `profile_is_public`. Видимость профиля для всех.
+- **bool** `is_public`. Видимость профиля для всех.
 
 ### Формат ответа
 
@@ -385,7 +385,7 @@ curl -X PATCH \
 -d first_name=Hello \
 -d last_name=World \
 -d gender=f \
--d profile_is_public=false \
+-d is_public=false \
 -d description='I am an invisible girl' \
 https://test.com/api/3/auth/user/576563ef523af52badc5beac
 ```

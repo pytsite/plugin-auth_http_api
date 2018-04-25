@@ -35,7 +35,7 @@ class TestHttpApi(testing.TestCase):
             user.set_field('urls', ['http://test.com/user-{}'.format(i)])
             user.set_field('country', 'Ukraine')
             user.set_field('city', 'Kyiv')
-            user.set_field('profile_is_public', True if i in (1, 3) else False)
+            user.set_field('is_public', True if i in (1, 3) else False)
             user.save()
 
             self.users.append(user)
@@ -169,7 +169,7 @@ class TestHttpApi(testing.TestCase):
                 self.assertHttpRespJsonFieldEquals(resp, 'uid', user.uid)
 
                 # Requester is authenticated user, but not a current user, profile is public
-                if requester_login != user.login and user.profile_is_public:
+                if requester_login != user.login and user.is_public:
                     self.assertHttpRespJsonFieldEquals(resp, 'nickname', 'nickname-{}'.format(i))
                     self.assertHttpRespJsonFieldIsDict(resp, 'picture')
                     self.assertHttpRespJsonFieldEquals(resp, 'first_name', 'first_name_{}'.format(i))
@@ -198,7 +198,7 @@ class TestHttpApi(testing.TestCase):
                     self.assertHttpRespJsonFieldIsDateTime(resp, 'last_activity')
                     self.assertHttpRespJsonFieldIsInt(resp, 'sign_in_count')
                     self.assertHttpRespJsonFieldEquals(resp, 'status', 'active')
-                    self.assertHttpRespJsonFieldIsBool(resp, 'profile_is_public')
+                    self.assertHttpRespJsonFieldIsBool(resp, 'is_public')
 
                     # Following fields are present only in version 1
                     if version == 1:

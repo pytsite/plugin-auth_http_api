@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 1.8 (2018-04-25)
+
+Support of `auth-3.0`.
+
+
 ### 1.7.1 (2018-04-06)
 
 Minor issues fixed.

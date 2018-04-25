@@ -146,7 +146,7 @@ curl -X DELETE https://test.com/api/1/auth/access-token/e51081bc4632d8c2a31ac5bd
 
 - **str** `uid`. Идентификатор учётной записи.
 
-Поля, возвращаемые в случае, если `profile_is_public` возвращаемой учётной записи равен `true`, запрашивающая учётная 
+Поля, возвращаемые в случае, если `is_public` возвращаемой учётной записи равен `true`, запрашивающая учётная
 запись является администратором или владельцем запрашиваемой учётной записи:
 
 - **str** `nickname`. Никнейм.
@@ -180,7 +180,7 @@ curl -X DELETE https://test.com/api/1/auth/access-token/e51081bc4632d8c2a31ac5bd
 - **str** `last_activity`. Время последней активности в формате W3C.
 - **int** `sign_in_count`. Общее количество успешных аутентификаций.
 - **str** `status`. Статус учётной записи: 'active', 'waiting' или 'disabled'.
-- **bool** `profile_is_public`. Видимость профиля для всех.
+- **bool** `is_public`. Видимость профиля для всех.
 - **array\[str\]** `roles`. UID назначенных ролей.
 - **array\[str\]** `blocked_users`. UID заблокированных пользователей.
 
@@ -235,7 +235,7 @@ https://test.com/api/1/auth/user/576563ef523af52badc5beac
   "last_activity": "2016-09-12T11:19:18+0300",
   "sign_in_count": 14,
   "status": "active",
-  "profile_is_public": true,
+  "is_public": true,
   "roles":
   [
       "57d665063e7d8960ed762231"
@@ -314,7 +314,7 @@ https://test.com/api/1/auth/users
 - **str** `country`. Страна.
 - **str** `city`. Город.
 - **array\[str\]** `urls`. URL профилей пользователя в других местах.
-- **bool** `profile_is_public`. Видимость профиля для всех.
+- **bool** `is_public`. Видимость профиля для всех.
 
 
 ### Формат ответа
@@ -333,7 +333,7 @@ curl -X PATCH \
 -d first_name=Hello \
 -d last_name=World \
 -d gender=f \
--d profile_is_public=false \
+-d is_public=false \
 -d description='I am an invisible girl' \
 https://test.com/api/1/auth/user/576563ef523af52badc5beac
 ```
