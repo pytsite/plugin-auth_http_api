@@ -20,4 +20,4 @@ def http_api_pre_request():
         _auth.prolong_access_token(access_token)
 
     except (_auth.error.InvalidAccessToken, _auth.error.UserNotFound, _auth.error.AuthenticationError) as e:
-        raise _http.error.Forbidden(response=_http.response.JSON({'error': str(e)}))
+        raise _http.error.Forbidden(response=_http.JSONResponse({'error': str(e)}))
