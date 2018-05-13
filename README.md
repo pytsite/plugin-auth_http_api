@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 1.9.1 (2018-05-13)
+
+Invalid validation rule fixed.
+
+
 ### 1.9 (2018-05-06)
 
 Support of PytSite-7.17.

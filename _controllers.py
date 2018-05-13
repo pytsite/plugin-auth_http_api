@@ -143,7 +143,7 @@ class PatchUser(_routing.Controller):
         self.args.add_formatter('urls', _formatters.JSONArrayToList())
         self.args.add_formatter('is_public', _formatters.Bool())
 
-        self.args.add_validation('email', _validation.rule.DateTime())
+        self.args.add_validation('email', _validation.rule.Email())
         self.args.add_validation('gender', _validation.rule.Choice(options=('m', 'f')))
 
     def exec(self) -> dict:
