@@ -144,7 +144,7 @@ class PatchUser(_routing.Controller):
         self.args.add_formatter('is_public', _formatters.Bool())
 
         self.args.add_validation('email', _validation.rule.Email())
-        self.args.add_validation('gender', _validation.rule.Choice(options=('m', 'f')))
+        self.args.add_validation('gender', _validation.rule.Enum(values=('m', 'f')))
 
     def exec(self) -> dict:
         user = _auth.get_current_user()

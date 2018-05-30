@@ -4,6 +4,16 @@
 ## Changelog
 
 
+### 1.10 (2018-05-30)
+
+Support of `pytsite-7.22`.
+
+
+### 1.9 (2018-05-06)
+
+Support of `pytsite-7.17`.
+
+
 ### 1.9.1 (2018-05-13)
 
 Invalid validation rule fixed.
@@ -11,7 +21,7 @@ Invalid validation rule fixed.
 
 ### 1.9 (2018-05-06)
 
-Support of PytSite-7.17.
+Support of `pytsite-7.17`.
 
 
 ### 1.8 (2018-04-25)
@@ -26,7 +36,7 @@ Minor issues fixed.
 
 ### 1.7 (2018-03-15)
 
-Support for PytSite-7.13.
+Support for `pytsite-7.13`.
 
 
 ### 1.6.2 (2018-01-29)
@@ -76,7 +86,7 @@ Events names fixed.
 
 ### 1.3 (2017-12-02)
 
-Support for PytSite-7.0.
+Support for `pytsite-7.0`.
 
 
 ### 1.2 (2017-12-02)
@@ -86,7 +96,7 @@ Support for last `auth` plugin update.
 
 ### 1.1 (2017-12-02)
 
-Support for PytSite-6.1.
+Support for `pytsite-6.1`.
 
 
 ### 1.0.1 (2017-11-27)
