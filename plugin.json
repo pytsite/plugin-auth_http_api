@@ -1,6 +1,6 @@
 {
   "name": "auth_http_api",
-  "version": "1.10",
+  "version": "2.0",
   "description": {
     "en": "Auth HTTP API",
     "ru": "Auth HTTP API",
@@ -16,8 +16,9 @@
     "pytsite": ">=7.22",
     "plugins": [
       "auth>=3.0",
-      "assetman",
-      "http_api"
+      "auth_http>=1.0",
+      "assetman>=2.3",
+      "http_api>=1.0"
     ]
   }
 }

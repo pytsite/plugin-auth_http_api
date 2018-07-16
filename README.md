@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 2.0 (2018-07-16)
+
+Totally refactored.
+
+
 ### 1.10 (2018-05-30)
 
 Support of `pytsite-7.22`.

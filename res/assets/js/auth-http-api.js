@@ -1,9 +1,9 @@
 define(['http-api'], function (httpApi) {
-    function isAnonymous() {
-        return httpApi.get('auth/is_anonymous', null, 2);
+    function me() {
+        return httpApi.get('auth/me');
     }
 
     return {
-        isAnonymous: isAnonymous
+        me: me
     }
 });

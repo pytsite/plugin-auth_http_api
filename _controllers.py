@@ -1,13 +1,12 @@
 """PytSite Auth HTTP API Plugin
 """
-from typing import Union as _Union
-from pytsite import events as _events, util as _util, logger as _logger, routing as _routing, \
-    formatters as _formatters, validation as _validation
-from plugins import auth as _auth
-
 __author__ = 'Alexander Shepetko'
 __email__ = 'a@shepetko.com'
 __license__ = 'MIT'
+
+from pytsite import events as _events, util as _util, logger as _logger, routing as _routing, \
+    formatters as _formatters, validation as _validation, lang as _lang
+from plugins import auth as _auth, http_api as _http_api
 
 
 def _get_access_token_info(token: str) -> dict:
@@ -21,89 +20,66 @@ def _get_access_token_info(token: str) -> dict:
     return r
 
 
-def _get_user_jsonable(user: _auth.model.AbstractUser, current_user: _auth.model.AbstractUser, http_api_version: int):
-    jsonable = user.as_jsonable()
+class PostSignUp(_routing.Controller):
+    """Sign Up Form Submit
+    """
 
-    # HTTP API version 1
-    if http_api_version == 1:
-        if user.is_public or current_user == user or current_user.is_admin:
-            jsonable['follows'] = [f.uid for f in user.follows]
-            jsonable['followers'] = [f.uid for f in user.followers]
+    def exec(self):
+        # If the user is already authenticated
+        if not _auth.get_current_user().is_anonymous:
+            raise self.forbidden(_lang.t('auth_http_api@user_already_authenticated'))
 
-        if current_user == user or current_user.is_admin:
-            jsonable['blocked_users'] = [u.uid for u in user.blocked_users]
+        try:
+            _auth.sign_up(self.arg('driver'), self.args)
+        except _auth.error.SignupDisabled as e:
+            raise self.forbidden(e)
 
-    return jsonable
+        return {'status': True}
 
 
-class PostAccessToken(_routing.Controller):
-    """Issue a new access token
+class PostSignIn(_routing.Controller):
+    """Sign In Form Submit
     """
 
     def exec(self) -> dict:
+        # If the user is already authenticated
+        if not _auth.get_current_user().is_anonymous:
+            raise self.forbidden(_lang.t('auth_http_api@user_already_authenticated'))
+
         try:
-            # Try to sign in user via driver
-            user = _auth.sign_in(self.arg('driver'), dict(self.args))
+            user = _auth.sign_in(self.arg('driver'), self.args)
 
-            return _get_access_token_info(_auth.generate_access_token(user))
+            r = {'status': True}
+            if self.arg('access_token'):
+                r['access_token'] = _get_access_token_info(_auth.generate_access_token(user))
 
-        except (_auth.error.AuthenticationError, _auth.error.UserNotFound) as e:
-            _logger.warn(e)
-            raise self.forbidden()
+            return r
 
+        # User account is not active
+        except _auth.error.UserNotActive as e:
+            raise self.warning(e, 401)
 
-class GetAccessToken(_routing.Controller):
-    """Get information about an access token
-    """
-
-    def exec(self) -> dict:
-        try:
-            return _get_access_token_info(self.arg('token'))
-
-        except _auth.error.InvalidAccessToken as e:
-            raise self.forbidden(str(e))
+        # Any other exception
+        except Exception:
+            # Don't expose reason of error to the outer world
+            raise self.unauthorized(_lang.t('auth_http_api@authentication_error'))
 
 
-class DeleteAccessToken(_routing.Controller):
-    """Delete an access token
+class DeleteSignIn(_routing.Controller):
+    """Sign out a user
     """
 
     def exec(self) -> dict:
         try:
             _auth.sign_out(_auth.get_current_user())
-            _auth.revoke_access_token(self.arg('token'))
+
+            if 'access_token' in self.args:
+                _auth.revoke_access_token(self.arg('access_token'))
 
             return {'status': True}
 
         except (_auth.error.UserNotFound, _auth.error.InvalidAccessToken) as e:
             raise self.forbidden(e)
-
-
-class GetIsAnonymous(_routing.Controller):
-    """Check if the current user is anonymous
-    """
-
-    def exec(self) -> _Union[bool, dict]:
-        if self.arg('_pytsite_http_api_version') == 1:
-            return _auth.get_current_user().is_anonymous
-
-        return {'status': _auth.get_current_user().is_anonymous}
-
-
-class GetUser(_routing.Controller):
-    """Get information about a user
-    """
-
-    def exec(self) -> dict:
-        try:
-            user = _auth.get_user(uid=self.arg('uid'))
-            jsonable = _get_user_jsonable(user, _auth.get_current_user(), self.arg('_pytsite_http_api_version'))
-            _events.fire('auth_http_api@get_user', user=user, json=jsonable)
-
-            return jsonable
-
-        except _auth.error.UserNotFound:
-            raise self.not_found()
 
 
 class GetUsers(_routing.Controller):
@@ -116,13 +92,12 @@ class GetUsers(_routing.Controller):
         self.args.add_formatter('uids', _formatters.JSONArrayToList())
 
     def exec(self) -> list:
-        current_user = _auth.get_current_user()
         r = []
 
         for uid in self.arg('uids'):
             try:
                 user = _auth.get_user(uid=uid)
-                json = _get_user_jsonable(user, current_user, self.arg('_pytsite_http_api_version'))
+                json = user.as_jsonable()
                 _events.fire('auth_http_api@get_user', user=user, json=json)
                 r.append(json)
 
@@ -131,6 +106,22 @@ class GetUsers(_routing.Controller):
                 _logger.warn(e)
 
         return r
+
+
+class GetUser(_routing.Controller):
+    """Get information about a user
+    """
+
+    def exec(self) -> dict:
+        try:
+            user = _auth.get_user(uid=self.arg('uid'))
+            jsonable = user.as_jsonable()
+            _events.fire('auth_http_api@get_user', user=user, json=jsonable)
+
+            return jsonable
+
+        except _auth.error.UserNotFound:
+            raise self.not_found()
 
 
 class PatchUser(_routing.Controller):
@@ -163,29 +154,102 @@ class PatchUser(_routing.Controller):
         if user.is_modified:
             user.save()
 
-        json = _get_user_jsonable(user, user, self.arg('_pytsite_http_api_version'))
+        json = user.as_jsonable()
 
         _events.fire('auth_http_api@get_user', user=user, json=json)
 
         return json
 
 
-class PostSignUp(_routing.Controller):
-    """Issue a new access token
+class GetUserFollowsOrFollowers(_routing.Controller):
+    """Get followed users or followers
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        self.args.add_formatter('skip', _formatters.PositiveInt())
+        self.args.add_formatter('count', _formatters.AboveZeroInt(maximum=100))
+
+    def exec(self) -> dict:
+        current_user = _auth.get_current_user()
+
+        try:
+            user = _auth.get_user(uid=self.arg('uid'))
+        except _auth.error.UserNotFound:
+            raise self.not_found()
+
+        if user != current_user and not (current_user.is_admin or user.is_public):
+            raise self.forbidden()
+
+        skip = self.arg('skip', 0)
+        count = self.arg('count', 10)
+
+        if self.arg('_pytsite_http_api_rule_name') == 'auth@get_user_follows':
+            users = [u.as_jsonable() for u in user.get_field('follows', skip=skip, count=count)]
+            remains = user.follows_count - (skip + count)
+            return {'result': users, 'remains': remains if remains > 0 else 0}
+        elif self.arg('_pytsite_http_api_rule_name') == 'auth@get_user_followers':
+            users = [u.as_jsonable() for u in user.get_field('followers', skip=skip, count=count)]
+            remains = user.followers_count - (skip + count)
+            return {'result': users, 'remains': remains if remains > 0 else 0}
+        else:
+            raise self.not_found()
+
+
+class GetMe(_routing.Controller):
+    """Get information about an access token
     """
 
     def exec(self) -> dict:
-        try:
-            # Try to sign in user via driver
-            user = _auth.sign_up(self.arg('driver'), dict(self.args))
-
-            return _get_access_token_info(_auth.generate_access_token(user))
-
-        except _auth.error.SignupDisabled as e:
-            raise self.forbidden(e)
+        user = _auth.get_current_user()
+        if not user.is_anonymous:
+            self.args['uid'] = user.uid
+            return _http_api.call('auth@get_user', self.args)
+        else:
+            raise self.forbidden()
 
 
-class PostFollow(_routing.Controller):
+class PatchMe(_routing.Controller):
+    """Patch me
+    """
+
+    def exec(self) -> dict:
+        user = _auth.get_current_user()
+        if not user.is_anonymous:
+            self.args['uid'] = user.uid
+            return _http_api.call('auth@patch_user', self.args)
+        else:
+            raise self.forbidden()
+
+
+class GetMeFollows(_routing.Controller):
+    """Patch me
+    """
+
+    def exec(self) -> dict:
+        user = _auth.get_current_user()
+        if not user.is_anonymous:
+            self.args['uid'] = user.uid
+            return _http_api.call('auth@get_user_follows', self.args)
+        else:
+            raise self.forbidden()
+
+
+class GetMeFollowers(_routing.Controller):
+    """Patch me
+    """
+
+    def exec(self) -> dict:
+        user = _auth.get_current_user()
+        if not user.is_anonymous:
+            self.args['uid'] = user.uid
+            return _http_api.call('auth@get_user_followers', self.args)
+        else:
+            raise self.forbidden()
+
+
+class PostMeFollows(_routing.Controller):
     """Follow a user
     """
 
@@ -205,13 +269,10 @@ class PostFollow(_routing.Controller):
         finally:
             _auth.restore_user()
 
-        if self.arg('_pytsite_http_api_version') == 1:
-            return {'follows': [u.uid for u in current_user.follows]}
-        else:
-            return {'status': True}
+        return {'status': True}
 
 
-class DeleteFollow(_routing.Controller):
+class DeleteMeFollows(_routing.Controller):
     """Unfollow a user
     """
 
@@ -231,53 +292,11 @@ class DeleteFollow(_routing.Controller):
         finally:
             _auth.restore_user()
 
-        if self.arg('_pytsite_http_api_version') == 1:
-            return {'follows': [u.uid for u in current_user.follows]}
-        else:
-            return {'status': True}
+        return {'status': True}
 
 
-class GetFollowsOrFollowers(_routing.Controller):
-    """Get followed users or followers
-    """
-
-    def __init__(self):
-        super().__init__()
-
-        self.args.add_formatter('skip', _formatters.PositiveInt())
-        self.args.add_formatter('count', _formatters.AboveZeroInt(maximum=100))
-
-    def exec(self) -> dict:
-        if self.arg('_pytsite_http_api_version') < 2:
-            raise self.not_found()
-
-        current_user = _auth.get_current_user()
-
-        try:
-            user = _auth.get_user(uid=self.arg('uid'))
-        except _auth.error.UserNotFound:
-            raise self.not_found()
-
-        if user != current_user and not (current_user.is_admin or user.is_public):
-            raise self.forbidden()
-
-        skip = self.arg('skip', 0)
-        count = self.arg('count', 10)
-
-        if self.arg('_pytsite_http_api_rule_name') == 'auth@get_follows':
-            users = [u.as_jsonable() for u in user.get_field('follows', skip=skip, count=count)]
-            remains = user.follows_count - (skip + count)
-            return {'result': users, 'remains': remains if remains > 0 else 0}
-        elif self.arg('_pytsite_http_api_rule_name') == 'auth@get_followers':
-            users = [u.as_jsonable() for u in user.get_field('followers', skip=skip, count=count)]
-            remains = user.followers_count - (skip + count)
-            return {'result': users, 'remains': remains if remains > 0 else 0}
-        else:
-            raise self.not_found()
-
-
-class GetBlockedUsers(_routing.Controller):
-    """Get followed users or followers
+class GetMeBlockedUsers(_routing.Controller):
+    """Get blocked users
     """
 
     def __init__(self):
@@ -287,9 +306,6 @@ class GetBlockedUsers(_routing.Controller):
         self.args.add_formatter('count', _formatters.AboveZeroInt(maximum=100))
 
     def exec(self):
-        if self.arg('_pytsite_http_api_version') < 2:
-            raise self.not_found()
-
         try:
             user = _auth.get_user(uid=self.arg('uid'))
         except _auth.error.UserNotFound:
@@ -308,7 +324,7 @@ class GetBlockedUsers(_routing.Controller):
         return {'result': users, 'remains': remains if remains > 0 else 0}
 
 
-class PostBlockUser(_routing.Controller):
+class PostMeBlockedUsers(_routing.Controller):
     """Block a user
     """
 
@@ -328,13 +344,10 @@ class PostBlockUser(_routing.Controller):
         finally:
             _auth.restore_user()
 
-        if self.arg('_pytsite_http_api_version') == 1:
-            return {'blocked_users': [u.uid for u in current_user.blocked_users]}
-        else:
-            return {'status': True}
+        return {'status': True}
 
 
-class DeleteBlockUser(_routing.Controller):
+class DeleteMeBlockedUsers(_routing.Controller):
     """Unblock a user
     """
 
@@ -354,7 +367,4 @@ class DeleteBlockUser(_routing.Controller):
         finally:
             _auth.restore_user()
 
-        if self.arg('_pytsite_http_api_version') == 1:
-            return {'blocked_users': [u.uid for u in current_user.blocked_users]}
-        else:
-            return {'status': True}
+        return {'status': True}

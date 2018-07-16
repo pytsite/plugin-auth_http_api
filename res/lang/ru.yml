@@ -1,0 +1,2 @@
+user_already_authenticated: 'Пользователь уже авторизован'
+authentication_error: 'Ошибка аутентификации'

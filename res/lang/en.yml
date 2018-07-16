@@ -1,0 +1,2 @@
+user_already_authenticated: 'User is already authenticated'
+authentication_error: 'Authentication error'
