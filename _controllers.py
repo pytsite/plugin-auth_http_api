@@ -1,6 +1,6 @@
 """PytSite Auth HTTP API Plugin
 """
-__author__ = 'Alexander Shepetko'
+__author__ = 'Oleksandr Shepetko'
 __email__ = 'a@shepetko.com'
 __license__ = 'MIT'
 
@@ -56,7 +56,7 @@ class PostSignIn(_routing.Controller):
             return r
 
         # User account is not active
-        except _auth.error.UserNotActive as e:
+        except (_auth.error.UserNotActive, _auth.error.UserNotConfirmed) as e:
             raise self.warning(e, 401)
 
         # Any other exception

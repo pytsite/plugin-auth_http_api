@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 2.0.1 (2018-08-22)
+
+User's `full_name` usage replaced with `first_last_name`.
+
+
 ### 2.0 (2018-07-16)
 
 Totally refactored.
