@@ -1,0 +1,4 @@
+{
+  "name": "@pytsite/auth-http-api",
+  "main": "index.js"
+}

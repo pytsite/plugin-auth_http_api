@@ -5,25 +5,7 @@ __email__ = 'a@shepetko.com'
 __license__ = 'MIT'
 
 
-def plugin_load():
-    from pytsite import lang
-    from plugins import assetman
-
-    lang.register_package(__name__)
-
-    assetman.register_package(__name__)
-    assetman.t_js(__name__, babelify=True)
-    assetman.js_module('auth-http-api', __name__ + '@js/auth-http-api')
-
-
-def plugin_install():
-    from plugins import assetman
-
-    assetman.build(__name__)
-    assetman.build_translations()
-
-
-def plugin_load_uwsgi():
+def plugin_load_wsgi():
     from plugins import http_api
     from . import _controllers, _eh
 
