@@ -1,6 +1,6 @@
 {
   "name": "auth_http_api",
-  "version": "3.0",
+  "version": "3.1",
   "description": {
     "en": "Auth HTTP API",
     "ru": "Auth HTTP API",
@@ -13,11 +13,11 @@
     "url": "https://shepetko.com"
   },
   "requires": {
-    "pytsite": "8.x",
+    "pytsite": ">=8",
     "plugins": {
+      "assetman": "4.x",
       "auth": "3.x",
       "auth_http": "2.x",
-      "assetman": "3.x",
       "http_api": "3.x"
     }
   }
