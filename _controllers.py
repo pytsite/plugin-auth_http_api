@@ -5,8 +5,8 @@ __email__ = 'a@shepetko.com'
 __license__ = 'MIT'
 
 from pytsite import events as _events, util as _util, logger as _logger, routing as _routing, \
-    formatters as _formatters, validation as _validation, lang as _lang
-from plugins import auth as _auth, http_api as _http_api
+    formatters as _formatters, validation as _validation, lang as _lang, reg as _reg
+from plugins import auth as _auth, http_api as _http_api, query as _query
 
 
 def _get_access_token_info(token: str) -> dict:
@@ -83,27 +83,52 @@ class DeleteSignIn(_routing.Controller):
 
 
 class GetUsers(_routing.Controller):
-    """Get information about multiple users
+    """Get users
     """
 
     def __init__(self):
         super().__init__()
 
         self.args.add_formatter('uids', _formatters.JSONArrayToList())
+        self.args.add_formatter('exclude', _formatters.JSONArrayToList())
+        self.args.add_formatter('search', _formatters.Str())
+        self.args.add_formatter('q', _formatters.Str())  # Alias for 'search'
+        self.args.add_formatter('skip', _formatters.PositiveInt())
+        self.args.add_formatter('limit', _formatters.PositiveInt(10, 100))
 
     def exec(self) -> list:
+        uids = self.arg('uids')
+        exclude = self.arg('exclude')
+        search = self.arg('search') or self.arg('q')
+
         r = []
 
-        for uid in self.arg('uids'):
-            try:
-                user = _auth.get_user(uid=uid)
-                json = user.as_jsonable()
-                _events.fire('auth_http_api@get_user', user=user, json=json)
-                r.append(json)
+        if uids:
+            for uid in self.arg('uids'):
+                try:
+                    user = _auth.get_user(uid=uid)
+                    json = user.as_jsonable()
+                    _events.fire('auth_http_api@get_user', user=user, json=json)
+                    r.append(json)
 
-            except Exception as e:
-                # Any exception is ignored due to safety reasons
-                _logger.warn(e)
+                except Exception as e:
+                    # Any exception is ignored due to safety reasons
+                    _logger.warn(e)
+        elif search and _reg.get('auth_http_api.search', False):
+            q = _query.Query()
+            q.add(_query.Or([
+                _query.Regex('first_name', '^{}'.format(search), True),
+                _query.Regex('last_name', '^{}'.format(search), True),
+            ]))
+
+            if not _auth.get_current_user().is_admin:
+                q.add(_query.Eq('is_public', True))
+
+            if exclude:
+                q.add(_query.Nin('uid', exclude))
+
+            for user in _auth.find_users(q, limit=self.arg('limit'), skip=self.arg('skip')):
+                r.append(user.as_jsonable())
 
         return r
 
