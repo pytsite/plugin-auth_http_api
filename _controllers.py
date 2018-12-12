@@ -89,8 +89,8 @@ class GetUsers(_routing.Controller):
     def __init__(self):
         super().__init__()
 
-        self.args.add_formatter('uids', _formatters.JSONArrayToList())
-        self.args.add_formatter('exclude', _formatters.JSONArrayToList())
+        self.args.add_formatter('uids', _formatters.JSONArray())
+        self.args.add_formatter('exclude', _formatters.JSONArray())
         self.args.add_formatter('search', _formatters.Str())
         self.args.add_formatter('q', _formatters.Str())  # Alias for 'search'
         self.args.add_formatter('skip', _formatters.PositiveInt())
@@ -156,7 +156,7 @@ class PatchUser(_routing.Controller):
     def __init__(self):
         super().__init__()
         self.args.add_formatter('birth_date', _formatters.DateTime())
-        self.args.add_formatter('urls', _formatters.JSONArrayToList())
+        self.args.add_formatter('urls', _formatters.JSONArray())
         self.args.add_formatter('is_public', _formatters.Bool())
 
         self.args.add_validation('email', _validation.rule.Email())

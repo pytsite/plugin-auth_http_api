@@ -4,6 +4,11 @@
 ## Changelog
 
 
+### 3.3 (2018-12-12)
+
+Support of `pytsite-8.4`.
+
+
 ### 3.2 (2018-10-22)
 
 - Support for `search` argument in `GetUsers` controller.
