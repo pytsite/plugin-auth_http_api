@@ -4,6 +4,14 @@
 ## Changelog
 
 
+### 3.4 (2019-07-16)
+
+- `post_sign_up`, `post_sign_in` and `delete_sign_in` route rule names renamed 
+  to `sign_up`, `sign_in` and `sign_out` respectively.
+- `sign_out` route rule now accessible only via `POST` method.
+- New JS API functions added: `signIn()`, `signUp()`, `signOut()`.
+
+
 ### 3.3 (2018-12-12)
 
 Support of `pytsite-8.4`.

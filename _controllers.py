@@ -4,97 +4,97 @@ __author__ = 'Oleksandr Shepetko'
 __email__ = 'a@shepetko.com'
 __license__ = 'MIT'
 
-from pytsite import events as _events, util as _util, logger as _logger, routing as _routing, \
-    formatters as _formatters, validation as _validation, lang as _lang, reg as _reg
-from plugins import auth as _auth, http_api as _http_api, query as _query
+from pytsite import events, util, logger, routing, formatters, validation, lang, reg
+from plugins import auth, http_api, query
 
 
 def _get_access_token_info(token: str) -> dict:
-    r = _auth.get_access_token_info(token)
+    r = auth.get_access_token_info(token)
     r.update({
         'token': token,
-        'created': _util.w3c_datetime_str(r['created']),
-        'expires': _util.w3c_datetime_str(r['expires']),
+        'created': util.w3c_datetime_str(r['created']),
+        'expires': util.w3c_datetime_str(r['expires']),
     })
 
     return r
 
 
-class PostSignUp(_routing.Controller):
+class SignUp(routing.Controller):
     """Sign Up Form Submit
     """
 
     def exec(self):
         # If the user is already authenticated
-        if not _auth.get_current_user().is_anonymous:
-            raise self.forbidden(_lang.t('auth_http_api@user_already_authenticated'))
+        if not auth.get_current_user().is_anonymous:
+            raise self.forbidden(lang.t('auth_http_api@user_already_authenticated'))
 
         try:
-            _auth.sign_up(self.arg('driver'), self.args)
-        except _auth.error.SignupDisabled as e:
+            auth.sign_up(self.arg('driver'), self.args)
+        except auth.error.SignupDisabled as e:
             raise self.forbidden(e)
 
         return {'status': True}
 
 
-class PostSignIn(_routing.Controller):
+class SignIn(routing.Controller):
     """Sign In Form Submit
     """
 
     def exec(self) -> dict:
         # If the user is already authenticated
-        if not _auth.get_current_user().is_anonymous:
-            raise self.forbidden(_lang.t('auth_http_api@user_already_authenticated'))
+        if not auth.get_current_user().is_anonymous:
+            raise self.forbidden(lang.t('auth_http_api@user_already_authenticated'))
 
         try:
-            user = _auth.sign_in(self.arg('driver'), self.args)
+            user = auth.sign_in(self.arg('driver'), self.args)
 
             r = {'status': True}
             if self.arg('access_token'):
-                r['access_token'] = _get_access_token_info(_auth.generate_access_token(user))
+                r['access_token'] = _get_access_token_info(auth.generate_access_token(user))
 
             return r
 
         # User account is not active
-        except (_auth.error.UserNotActive, _auth.error.UserNotConfirmed) as e:
+        except (auth.error.UserNotActive, auth.error.UserNotConfirmed) as e:
             raise self.warning(e, 401)
 
         # Any other exception
-        except Exception:
+        except Exception as e:
             # Don't expose reason of error to the outer world
-            raise self.unauthorized(_lang.t('auth_http_api@authentication_error'))
+            logger.error(e)
+            raise self.unauthorized(lang.t('auth_http_api@authentication_error'))
 
 
-class DeleteSignIn(_routing.Controller):
+class SignOut(routing.Controller):
     """Sign out a user
     """
 
     def exec(self) -> dict:
         try:
-            _auth.sign_out(_auth.get_current_user())
+            auth.sign_out(auth.get_current_user())
 
             if 'access_token' in self.args:
-                _auth.revoke_access_token(self.arg('access_token'))
+                auth.revoke_access_token(self.arg('access_token'))
 
             return {'status': True}
 
-        except (_auth.error.UserNotFound, _auth.error.InvalidAccessToken) as e:
+        except (auth.error.UserNotFound, auth.error.InvalidAccessToken) as e:
             raise self.forbidden(e)
 
 
-class GetUsers(_routing.Controller):
+class GetUsers(routing.Controller):
     """Get users
     """
 
     def __init__(self):
         super().__init__()
 
-        self.args.add_formatter('uids', _formatters.JSONArray())
-        self.args.add_formatter('exclude', _formatters.JSONArray())
-        self.args.add_formatter('search', _formatters.Str())
-        self.args.add_formatter('q', _formatters.Str())  # Alias for 'search'
-        self.args.add_formatter('skip', _formatters.PositiveInt())
-        self.args.add_formatter('limit', _formatters.PositiveInt(10, 100))
+        self.args.add_formatter('uids', formatters.JSONArray())
+        self.args.add_formatter('exclude', formatters.JSONArray())
+        self.args.add_formatter('search', formatters.Str())
+        self.args.add_formatter('q', formatters.Str())  # Alias for 'search'
+        self.args.add_formatter('skip', formatters.PositiveInt())
+        self.args.add_formatter('limit', formatters.PositiveInt(10, 100))
 
     def exec(self) -> list:
         uids = self.arg('uids')
@@ -106,64 +106,64 @@ class GetUsers(_routing.Controller):
         if uids:
             for uid in self.arg('uids'):
                 try:
-                    user = _auth.get_user(uid=uid)
+                    user = auth.get_user(uid=uid)
                     json = user.as_jsonable()
-                    _events.fire('auth_http_api@get_user', user=user, json=json)
+                    events.fire('auth_http_api@get_user', user=user, json=json)
                     r.append(json)
 
                 except Exception as e:
                     # Any exception is ignored due to safety reasons
-                    _logger.warn(e)
-        elif search and _reg.get('auth_http_api.search', False):
-            q = _query.Query()
-            q.add(_query.Or([
-                _query.Regex('first_name', '^{}'.format(search), True),
-                _query.Regex('last_name', '^{}'.format(search), True),
+                    logger.warn(e)
+        elif search and reg.get('auth_http_api.search', False):
+            q = query.Query()
+            q.add(query.Or([
+                query.Regex('first_name', '^{}'.format(search), True),
+                query.Regex('last_name', '^{}'.format(search), True),
             ]))
 
-            if not _auth.get_current_user().is_admin:
-                q.add(_query.Eq('is_public', True))
+            if not auth.get_current_user().is_admin:
+                q.add(query.Eq('is_public', True))
 
             if exclude:
-                q.add(_query.Nin('uid', exclude))
+                q.add(query.Nin('uid', exclude))
 
-            for user in _auth.find_users(q, limit=self.arg('limit'), skip=self.arg('skip')):
+            for user in auth.find_users(q, limit=self.arg('limit'), skip=self.arg('skip')):
                 r.append(user.as_jsonable())
 
         return r
 
 
-class GetUser(_routing.Controller):
+class GetUser(routing.Controller):
     """Get information about a user
     """
 
     def exec(self) -> dict:
         try:
-            user = _auth.get_user(uid=self.arg('uid'))
+            user = auth.get_user(uid=self.arg('uid'))
             jsonable = user.as_jsonable()
-            _events.fire('auth_http_api@get_user', user=user, json=jsonable)
+            events.fire('auth_http_api@get_user', user=user, json=jsonable)
 
             return jsonable
 
-        except _auth.error.UserNotFound:
+        except auth.error.UserNotFound:
             raise self.not_found()
 
 
-class PatchUser(_routing.Controller):
+class PatchUser(routing.Controller):
     """Update user
     """
 
     def __init__(self):
         super().__init__()
-        self.args.add_formatter('birth_date', _formatters.DateTime())
-        self.args.add_formatter('urls', _formatters.JSONArray())
-        self.args.add_formatter('is_public', _formatters.Bool())
+        self.args.add_formatter('birth_date', formatters.DateTime())
+        self.args.add_formatter('urls', formatters.JSONArray())
+        self.args.add_formatter('is_public', formatters.Bool())
 
-        self.args.add_validation('email', _validation.rule.Email())
-        self.args.add_validation('gender', _validation.rule.Enum(values=('m', 'f')))
+        self.args.add_validation('email', validation.rule.Email())
+        self.args.add_validation('gender', validation.rule.Enum(values=('m', 'f')))
 
     def exec(self) -> dict:
-        user = _auth.get_current_user()
+        user = auth.get_current_user()
 
         # Check permissions
         if user.is_anonymous or (user.uid != self.arg('uid') and not user.is_admin):
@@ -181,27 +181,27 @@ class PatchUser(_routing.Controller):
 
         json = user.as_jsonable()
 
-        _events.fire('auth_http_api@get_user', user=user, json=json)
+        events.fire('auth_http_api@get_user', user=user, json=json)
 
         return json
 
 
-class GetUserFollowsOrFollowers(_routing.Controller):
+class GetUserFollowsOrFollowers(routing.Controller):
     """Get followed users or followers
     """
 
     def __init__(self):
         super().__init__()
 
-        self.args.add_formatter('skip', _formatters.PositiveInt())
-        self.args.add_formatter('count', _formatters.AboveZeroInt(maximum=100))
+        self.args.add_formatter('skip', formatters.PositiveInt())
+        self.args.add_formatter('count', formatters.AboveZeroInt(maximum=100))
 
     def exec(self) -> dict:
-        current_user = _auth.get_current_user()
+        current_user = auth.get_current_user()
 
         try:
-            user = _auth.get_user(uid=self.arg('uid'))
-        except _auth.error.UserNotFound:
+            user = auth.get_user(uid=self.arg('uid'))
+        except auth.error.UserNotFound:
             raise self.not_found()
 
         if user != current_user and not (current_user.is_admin or user.is_public):
@@ -210,11 +210,11 @@ class GetUserFollowsOrFollowers(_routing.Controller):
         skip = self.arg('skip', 0)
         count = self.arg('count', 10)
 
-        if self.arg('_pytsite_http_api_rule_name') == 'auth@get_user_follows':
+        if self.arg('_pytsite_http_api_rule_name') == 'auth_http_api@get_user_follows':
             users = [u.as_jsonable() for u in user.get_field('follows', skip=skip, count=count)]
             remains = user.follows_count - (skip + count)
             return {'result': users, 'remains': remains if remains > 0 else 0}
-        elif self.arg('_pytsite_http_api_rule_name') == 'auth@get_user_followers':
+        elif self.arg('_pytsite_http_api_rule_name') == 'auth_http_api@get_user_followers':
             users = [u.as_jsonable() for u in user.get_field('followers', skip=skip, count=count)]
             remains = user.followers_count - (skip + count)
             return {'result': users, 'remains': remains if remains > 0 else 0}
@@ -222,121 +222,121 @@ class GetUserFollowsOrFollowers(_routing.Controller):
             raise self.not_found()
 
 
-class GetMe(_routing.Controller):
+class GetMe(routing.Controller):
     """Get information about an access token
     """
 
     def exec(self) -> dict:
-        user = _auth.get_current_user()
+        user = auth.get_current_user()
         if not user.is_anonymous:
             self.args['uid'] = user.uid
-            return _http_api.call('auth@get_user', self.args)
+            return http_api.call('auth_http_api@get_user', self.args)
         else:
             raise self.forbidden()
 
 
-class PatchMe(_routing.Controller):
+class PatchMe(routing.Controller):
     """Patch me
     """
 
     def exec(self) -> dict:
-        user = _auth.get_current_user()
+        user = auth.get_current_user()
         if not user.is_anonymous:
             self.args['uid'] = user.uid
-            return _http_api.call('auth@patch_user', self.args)
+            return http_api.call('auth_http_api@patch_user', self.args)
         else:
             raise self.forbidden()
 
 
-class GetMeFollows(_routing.Controller):
+class GetMeFollows(routing.Controller):
     """Patch me
     """
 
     def exec(self) -> dict:
-        user = _auth.get_current_user()
+        user = auth.get_current_user()
         if not user.is_anonymous:
             self.args['uid'] = user.uid
-            return _http_api.call('auth@get_user_follows', self.args)
+            return http_api.call('auth_http_api@get_user_follows', self.args)
         else:
             raise self.forbidden()
 
 
-class GetMeFollowers(_routing.Controller):
+class GetMeFollowers(routing.Controller):
     """Patch me
     """
 
     def exec(self) -> dict:
-        user = _auth.get_current_user()
+        user = auth.get_current_user()
         if not user.is_anonymous:
             self.args['uid'] = user.uid
-            return _http_api.call('auth@get_user_followers', self.args)
+            return http_api.call('auth_http_api@get_user_followers', self.args)
         else:
             raise self.forbidden()
 
 
-class PostMeFollows(_routing.Controller):
+class PostMeFollows(routing.Controller):
     """Follow a user
     """
 
     def exec(self) -> dict:
         # Is current user authorized
-        current_user = _auth.get_current_user()
+        current_user = auth.get_current_user()
         if current_user.is_anonymous:
             raise self.forbidden()
 
         # Load user to follow
         try:
-            user = _auth.get_user(uid=self.arg('uid'))
-            _auth.switch_user_to_system()
+            user = auth.get_user(uid=self.arg('uid'))
+            auth.switch_user_to_system()
             current_user.add_follows(user).save()
-        except _auth.error.UserNotFound:
+        except auth.error.UserNotFound:
             raise self.not_found()
         finally:
-            _auth.restore_user()
+            auth.restore_user()
 
         return {'status': True}
 
 
-class DeleteMeFollows(_routing.Controller):
+class DeleteMeFollows(routing.Controller):
     """Unfollow a user
     """
 
     def exec(self) -> dict:
         # Is current user authorized?
-        current_user = _auth.get_current_user()
+        current_user = auth.get_current_user()
         if current_user.is_anonymous:
             raise self.forbidden()
 
         # Load user to unfollow
         try:
-            user = _auth.get_user(uid=self.arg('uid'))
-            _auth.switch_user_to_system()
+            user = auth.get_user(uid=self.arg('uid'))
+            auth.switch_user_to_system()
             current_user.remove_follows(user).save()
-        except _auth.error.UserNotFound:
+        except auth.error.UserNotFound:
             raise self.not_found()
         finally:
-            _auth.restore_user()
+            auth.restore_user()
 
         return {'status': True}
 
 
-class GetMeBlockedUsers(_routing.Controller):
+class GetMeBlockedUsers(routing.Controller):
     """Get blocked users
     """
 
     def __init__(self):
         super().__init__()
 
-        self.args.add_formatter('skip', _formatters.PositiveInt())
-        self.args.add_formatter('count', _formatters.AboveZeroInt(maximum=100))
+        self.args.add_formatter('skip', formatters.PositiveInt())
+        self.args.add_formatter('count', formatters.AboveZeroInt(maximum=100))
 
     def exec(self):
         try:
-            user = _auth.get_user(uid=self.arg('uid'))
-        except _auth.error.UserNotFound:
+            user = auth.get_user(uid=self.arg('uid'))
+        except auth.error.UserNotFound:
             raise self.not_found()
 
-        current_user = _auth.get_current_user()
+        current_user = auth.get_current_user()
 
         if current_user.is_anonymous or not (current_user == user or current_user.is_admin):
             raise self.forbidden()
@@ -349,47 +349,47 @@ class GetMeBlockedUsers(_routing.Controller):
         return {'result': users, 'remains': remains if remains > 0 else 0}
 
 
-class PostMeBlockedUsers(_routing.Controller):
+class PostMeBlockedUsers(routing.Controller):
     """Block a user
     """
 
     def exec(self) -> dict:
         # Is current user authorized
-        current_user = _auth.get_current_user()
+        current_user = auth.get_current_user()
         if current_user.is_anonymous:
             raise self.forbidden()
 
         # Load user to block
         try:
-            user = _auth.get_user(uid=self.arg('uid'))
-            _auth.switch_user_to_system()
+            user = auth.get_user(uid=self.arg('uid'))
+            auth.switch_user_to_system()
             current_user.add_blocked_user(user).save()
-        except _auth.error.UserNotFound:
+        except auth.error.UserNotFound:
             raise self.not_found()
         finally:
-            _auth.restore_user()
+            auth.restore_user()
 
         return {'status': True}
 
 
-class DeleteMeBlockedUsers(_routing.Controller):
+class DeleteMeBlockedUsers(routing.Controller):
     """Unblock a user
     """
 
     def exec(self) -> dict:
         # Is current user authorized
-        current_user = _auth.get_current_user()
+        current_user = auth.get_current_user()
         if current_user.is_anonymous:
             raise self.forbidden()
 
         # Load user to unblock
         try:
-            user = _auth.get_user(uid=self.arg('uid'))
-            _auth.switch_user_to_system()
+            user = auth.get_user(uid=self.arg('uid'))
+            auth.switch_user_to_system()
             current_user.remove_blocked_user(user).save()
-        except _auth.error.UserNotFound:
+        except auth.error.UserNotFound:
             raise self.not_found()
         finally:
-            _auth.restore_user()
+            auth.restore_user()
 
         return {'status': True}

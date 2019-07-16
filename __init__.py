@@ -10,12 +10,9 @@ def plugin_load_wsgi():
     from . import _controllers, _eh
 
     # Sign-up, sign-in, sign-out
-    http_api.handle('POST', 'auth/sign-up', _controllers.PostSignUp,
-                    'auth_http_api@post_sign_up')
-    http_api.handle('POST', 'auth/sign-in', _controllers.PostSignIn,
-                    'auth_http_api@post_sign_in')
-    http_api.handle('DELETE', 'auth/sign-in', _controllers.DeleteSignIn,
-                    'auth_http_api@delete_sign_in')
+    http_api.handle('POST', 'auth/sign-in', _controllers.SignIn, 'auth_http_api@sign_in')
+    http_api.handle('POST', 'auth/sign-up', _controllers.SignUp, 'auth_http_api@sign_up')
+    http_api.handle('POST', 'auth/sign-out', _controllers.SignOut, 'auth_http_api@sign_out')
 
     # # User HTTP API
     http_api.handle('GET', 'auth/users', _controllers.GetUsers,
